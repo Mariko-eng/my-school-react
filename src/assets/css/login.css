@@ -1,0 +1,14 @@
+.myStyle {
+    background-image: url('../images/login_background.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.colStyle{
+    display:flex;
+    flex-direction:column;
+    align-items: center;
+    justify-content:"center";
+    padding: 20px 10px;
+    background-color: rgb(231,232,237);
+}
