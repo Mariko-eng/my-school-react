@@ -55,14 +55,12 @@ const inventorySlice = createSlice({
             }
 
         },
-
         removeItemstockInCart:(state,action) => {
             const itemId = action.payload
             state.stockInCart = state.stockInCart.filter((item) => 
             item.id !== itemId
             )
         },
-
         calculateTotalsstockInCart: (state) => {
             let itemsNo = 0;
             // let total = 0;

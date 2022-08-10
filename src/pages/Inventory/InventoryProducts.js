@@ -161,8 +161,8 @@ const InventoryProducts = () => {
           {"True"}
         </Tag>: 
           <Tag color={"red"}>
-                {"False"}
-              </Tag>
+            {"False"}
+          </Tag>
         }
         </>
       ),

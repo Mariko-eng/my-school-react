@@ -8,7 +8,7 @@ const Login = () => {
         console.log('Success:', values);
       };
     
-    const onFinishFailed = (errorInfo) => {
+     const onFinishFailed = (errorInfo) => {
         console.log('Failed:', errorInfo);
       };
 
