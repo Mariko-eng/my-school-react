@@ -1,13 +1,15 @@
-import React, { useEffect,useState,useRef } from 'react'
-import { SearchOutlined } from '@ant-design/icons';
-import axios from 'axios'
-import {Table, Tag, Space ,Button, Input,Breadcrumb} from 'antd'
-import { Link } from 'react-router-dom'
-import Highlighter from 'react-highlight-words';
+import React, { useEffect, useState, useRef } from "react";
+import { SearchOutlined } from "@ant-design/icons";
+import axios from "axios";
+import { Table, Tag, Space, Button, Input, Breadcrumb } from "antd";
+import { Link } from "react-router-dom";
+import Highlighter from "react-highlight-words";
+import { FileAddFilled } from "@ant-design/icons";
+import moment from "moment";
 
 const InventoryStock = () => {
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -18,11 +20,16 @@ const InventoryStock = () => {
 
   const handleReset = (clearFilters) => {
     clearFilters();
-    setSearchText('');
+    setSearchText("");
   };
 
   const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }) => (
       <div
         style={{
           padding: 8,
@@ -32,11 +39,13 @@ const InventoryStock = () => {
           ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
-            display: 'block',
+            display: "block",
           }}
         />
         <Space>
@@ -79,7 +88,7 @@ const InventoryStock = () => {
     filterIcon: (filtered) => (
       <SearchOutlined
         style={{
-          color: filtered ? '#1890ff' : undefined,
+          color: filtered ? "#1890ff" : undefined,
         }}
       />
     ),
@@ -94,133 +103,165 @@ const InventoryStock = () => {
       searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{
-            backgroundColor: '#ffc069',
+            backgroundColor: "#ffc069",
             padding: 0,
           }}
           searchWords={[searchText]}
           autoEscape
-          textToHighlight={text ? text.toString() : ''}
+          textToHighlight={text ? text.toString() : ""}
         />
       ) : (
         text
       ),
   });
 
-
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState([]);
 
   const getProducts = () => {
-    const url = 'http://127.0.0.1:8000/products/';
-    axios.get(url).then(res => {
-      const { data } = res
-      const objs = []
-      data.forEach(item =>{
-        if(item.products.length >= 1){
-          objs.push(...item.products)
-        }
-        setProducts(objs)
-      })
-    })
-  }
-  useEffect(() =>{
-    getProducts()
-  },[])
+    const url = "http://127.0.0.1:8000/store/inward-list/";
+    axios.get(url).then((res) => {
+      const { data } = res;
+      // console.log(data)
+      setProducts(data);
+    });
+  };
+  useEffect(() => {
+    getProducts();
+  }, []);
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      render: (text) => <Link to="">{text}</Link>,
-      sorter: (a, b) => a.id - b.id,
+      title: "Item",
+      dataIndex: "item",
+      key: "item",
+      fixed: "left",
+      width: 150,
+      sorter: (a, b) => a.item.length - b.item.length,
+      sortDirections: ["descend"],
+      ...getColumnSearchProps("item"),
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) => a.name.length - b.name.length,
-      sortDirections: ['descend'],
-      ...getColumnSearchProps('name'),
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
+      ...getColumnSearchProps("category"),
     },
     {
-      title: 'Category',
-      dataIndex: 'category_name',
-      key: 'category',
-      ...getColumnSearchProps('category_name'),
+      title: "Measure",
+      dataIndex: "measure",
+      key: "measure",
+      ...getColumnSearchProps("measure"),
     },
     {
-      title: 'Status',
-      key: 'is_published',
-      dataIndex: 'is_published',
-      render: (status ) => (
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+      ...getColumnSearchProps("quantity"),
+    },
+    {
+      title: "Units",
+      dataIndex: "units",
+      key: "units",
+      ...getColumnSearchProps("units"),
+    },
+    {
+      title: "Term",
+      dataIndex: "term",
+      key: "term",
+      render: (_, record) => (
+        <div>
+          {record.term.name} ({record.term.academic_year})
+        </div>
+      ),
+    },
+    {
+      title: "Date",
+      key: "date",
+      render: (_, record) => (
+        <div>
+          {moment(record.date_created).format("MMMM Do YYYY, h:mm:ss a")}
+        </div>
+      ),
+    },
+    {
+      title: "Status",
+      key: "is_approved",
+      dataIndex: "is_published",
+      render: (status) => (
         <>
-        {
-          status ? <Tag color={"blue"}>
-          {"True"}
-        </Tag>: 
-          <Tag color={"red"}>
-                {"False"}
-              </Tag>
-        }
+          {status ? (
+            <Tag color={"blue"}>{"True"}</Tag>
+          ) : (
+            <Tag color={"red"}>{"False"}</Tag>
+          )}
         </>
       ),
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       render: (_, record) => (
-        <Space size="middle">
-          <Link to=""
-          style={{ color: "blue"}}
-          >Stock In</Link>
-          <Link to=""
-          style={{ color: "red"}}
-          >Stock Out</Link>
-          <Link to=""
-          style={{ color: "green"}}
-          >Make Request</Link>
-        </Space>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <Link to="" style={{ color: "green", fontSize: "12px" }}>
+            Stock In
+          </Link>
+          <Link to="" style={{ color: "orange", fontSize: "12px" }}>
+            Stock Out
+          </Link>
+          <Link to="" style={{ color: "blue", fontSize: "12px" }}>
+            Request
+          </Link>
+        </div>
       ),
     },
   ];
 
   return (
     <div>
-        <div>
-        <Breadcrumb
-          style={{
-                margin: '16px 0',
-              }}>
-        <Breadcrumb.Item>Inventory</Breadcrumb.Item>
-        <Breadcrumb.Item>Products</Breadcrumb.Item>
-        <Breadcrumb.Item>
-        <Link to="/home/inventory/products/">List</Link>
-        </Breadcrumb.Item>
-       </Breadcrumb>
-      </div>
       <div>
         <Breadcrumb
           style={{
-                margin: '16px 0',
-              }}>
-        <Breadcrumb.Item>
-        <Link to="/home/inventory/category/new"
-                style={{ color:"blue" }}
-        >New Category</Link>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-        <Link to="/home/inventory/products/new"
-                style={{ color:"blue" }}
-                >New Product</Link>
-        </Breadcrumb.Item>
-    </Breadcrumb>
-      </div>      <div style={{ 
-        marginTop : "20px"
-      }}>
-        <Table columns={columns} dataSource={products}/>
-        </div>
+            margin: "16px 0",
+          }}
+        >
+          <Breadcrumb.Item>Inventory</Breadcrumb.Item>
+          <Breadcrumb.Item>Current Stock</Breadcrumb.Item>
+        </Breadcrumb>
+      </div>
+      <div>
+        <Breadcrumb>
+          <Breadcrumb.Item>
+            <Link to="/home/inventory/new" style={{ color: "blue" }}>
+              Add Category <FileAddFilled />
+            </Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link to="/home/inventory/new" style={{ color: "green" }}>
+              Add New Stock <FileAddFilled />
+            </Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link to="/home/inventory/out" style={{ color: "orange" }}>
+              Issue Out Stock <FileAddFilled />
+            </Link>
+          </Breadcrumb.Item>
+        </Breadcrumb>
+      </div>{" "}
+      <div
+        style={{
+          marginTop: "20px",
+        }}
+      >
+        <Table
+          columns={columns}
+          dataSource={products}
+          scroll={{
+            x: 1000,
+          }}
+        />
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default InventoryStock
+export default InventoryStock;

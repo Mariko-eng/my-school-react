@@ -7,6 +7,7 @@ import invoiceReducer from "./invoiceSlice"
 import receiptReducer from "./receiptSlice"
 import procurementReducer from "./procurementSlice"
 import appSettingsReducer from "./appSettingsSlice";
+import studentsSearchReducer from "./studentsSearchSlice"; 
 
 export const store = configureStore({
     reducer:{
@@ -17,6 +18,7 @@ export const store = configureStore({
         invoice: invoiceReducer,
         receipt: receiptReducer,
         procurement: procurementReducer,
-        appSettings : appSettingsReducer
+        appSettings : appSettingsReducer,
+        studentsSearch:studentsSearchReducer
     }
 })

@@ -61,7 +61,7 @@ const ParentsNew = () => {
     ...student_data,
     parents_info : parent_data
   }
-  const url = "http://localhost:8000/basic/students/register/"
+  const url = "http://localhost:8000/basic/students-parents/register/"
   axios.post(url , data, {
     headers: {
       "content-type" : "application/json" 
@@ -152,14 +152,14 @@ const ParentsNew = () => {
               <Col span={12}>
                 <Form.Item name="father_phone_number" label="Phone Number" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="father_email" label="Email" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
@@ -168,14 +168,14 @@ const ParentsNew = () => {
               <Col span={12}>
                 <Form.Item name="father_profession" label="Profession" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="father_work_place" label="Work Place" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
@@ -223,14 +223,14 @@ const ParentsNew = () => {
               <Col span={12}>
                 <Form.Item name="mother_phone_number" label="Phone Number" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="mother_email" label="Email" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
@@ -239,14 +239,14 @@ const ParentsNew = () => {
               <Col span={12}>
                 <Form.Item name="mother_profession" label="Profession" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="mother_work_place" label="Work Place" 
                   rules={[
-                    { required: true,},]}>
+                    { required: false,},]}>
                   <Input />
                 </Form.Item>
               </Col>
@@ -380,14 +380,14 @@ const ParentsNew = () => {
           <Card title = "National ID Details">
             <Row>
               <Col span={12}>
-                <Form.Item name="contact_nationalId_name" label="Owner" 
+                <Form.Item name="contact_national_id" label="ID Number" 
                   rules={[
                     { required: true,},]}>
                   <Input />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item name="contact_national_id" label="ID Number" 
+                <Form.Item name="contact_nationalId_name" label="Owner" 
                   rules={[
                     { required: true,},]}>
                   <Input />

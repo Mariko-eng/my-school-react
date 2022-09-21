@@ -1,202 +1,252 @@
-import React, { useState, useEffect } from 'react'
-import { AppBreadcrumb } from '../../components'
-import {Form, Input,Select,Drawer, Col,Row,Card,Button} from 'antd'
-import { FolderAddOutlined } from '@ant-design/icons';
-import { useDispatch, useSelector } from 'react-redux'
-import { getProducts, getSuppliers } from '../../store/productSlice'
-import { changeQtystockInCart,clearstockInCart } from '../../store/inventorySlice'
-import {Link} from 'react-router-dom';
-import DrawerProducts from '../../components/DrawerProducts';
+import React, { useEffect, useState } from "react";
+import { Form, Input, Select, Modal, Button, Breadcrumb } from "antd";
+import { FolderAddOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { CheckCircleOutlined } from "@ant-design/icons";
 
 const InventoryStockIn = () => {
-  const dispatch = useDispatch()
-  const { suppliers } = useSelector((store) => store.product)
-  const { stockInCart, noOfstockInCartItems} = useSelector(store => store.inventory)
-    
-    const [visible, setVisible] = useState(false);
-  
-    const showDrawer = () => {
-      setVisible(true);
-    };
-  
-    const onClose = () => {
-      setVisible(false);
-    };
-  
-    useEffect(() =>{
-      dispatch(getProducts())
-    },[dispatch])
+  const [terms, setTerms] = useState([]);
+  const [xTerm, setXTerm] = useState({ id: "" });
+  const [categories, setCategories] = useState([]);
+  const [xCategory, setXCategory] = useState({ id: "" });
+  const [visible, setVisible] = useState(false);
 
-    useEffect(() =>{
-      dispatch(getSuppliers())
-    },[dispatch])
-    
-    return (
-      <>
-      <div style={{ background:"lightcyan", padding:"8px"}}>
-        <AppBreadcrumb title="Inventory" action1="Add New Stock" />
-        <div style={{ 
-          display: "flex"
-        }}>
-          <Button  style={{ background:"blue" , color:"white"}} onClick={() => showDrawer()} >Choose Products</Button>
-          {noOfstockInCartItems !== 0 &&
-          <div style={{ 
-            display: "flex"
-          }}>
-          <Button style={{ background:"red" , color:"white"}} onClick={() => dispatch(clearstockInCart())} >Clear List</Button>
-          <Button>Total {noOfstockInCartItems}</Button>
-          </div>
-          }
-        </div>
-        <br/>
-        <Card>
-          <Row>
-            <Col span = {4} >Id</Col>
-            <Col span = {4}>Name</Col>
-            <Col span = {4}>Category</Col>
-            <Col span = {4}>Stock</Col>
-            <Col span = {4}>Units</Col>
-            <Col span = {4}>Quantity</Col>
-          </Row>
-        </Card>
+  const navigate = useNavigate();
 
-        <Card>
-        {stockInCart.map(item => {
-        return (<div
-            key={item.id}>
-          <Row>
-          <Col span={4} >{item.id}</Col>
-          <Col span={4} >{item.name}</Col>
-          <Col span={4} >{item.category}</Col>
-          <Col span={4} >{item.current_qty}</Col>
-          <Col span={4} >{item.units}</Col>
-          <Col span={4} >
-            <input
-            style={{
-              borderRadius:"20px",
-              width : "100px",height:"30px"}} 
-            type='number' 
-            name = "q"
-            placeholder="Quantity" 
-            value= {item.qty}
-            onChange={(e) =>{  dispatch(changeQtystockInCart({id: item.id,qty:e.target.value}))}}
-            /></Col>
-          </Row>
-        </div>
-        )  
-      }
-        )}
-      </Card>
-  
-      </div>
-      {noOfstockInCartItems !== 0 &&
-      <div style={{ marginTop: "20px" }}>
-                <Form.Item
-        wrapperCol={{ offset: 8,
-        span : 16}}
-        style={{
-          background: "lightcyan"
-        }}
-        >
-          Additional Information
-        </Form.Item>
-      <Form.Item name="supplier"
-       label="Select Supplier"
-       autoComplete="off"
-       labelCol={{
-         span: 4,
-       }}
-       wrapperCol={{
-         span: 20,
-       }}
-       >
-        <Select>
-          { suppliers.map((suppliers,index) => 
-              <Select.Option key= {index} value={suppliers.id}>{suppliers.name} -- {suppliers.location}</Select.Option>
-          ) }
-        </Select>
-        <div style={{color:"blue"}} >
-        <Link to="/home/inventory/category/new123"
-                style={{ color:"blue" }}
-        >Add Supplier</Link>
-          <span style={{ marginLeft : "5px",color:"green" }}><FolderAddOutlined/></span></div>
-      </Form.Item>
-      <Form.Item
-        name="comment"
-        label="Comments"
-        autoComplete="off"
-        labelCol={{
-          span:4,
-        }}
-        wrapperCol={{
-          span: 20,
-        }}
-      >
-        <Input.TextArea showCount maxLength={1000} placeholder='Optional'/>
-        </Form.Item>
-        <Form.Item
-        name="procurement_id"
-        label="Procurement Id"
-        autoComplete="off"
-        labelCol={{
-          span: 4,
-        }}
-        wrapperCol={{
-          span: 20,
-        }}
-      >
-        <Input showCount placeholder='Optional' />
-        </Form.Item>
-      <Form.Item
-        name="invoice_id"
-        label="Invoice Id"
-        autoComplete="off"
-        labelCol={{
-          span: 4,
-        }}
-        wrapperCol={{
-          span: 20,
-        }}
-      >
-        <Input showCount placeholder='Optional' />
-        </Form.Item>
-      <Form.Item
-        name="receipt_id"
-        label="Receipt Id"
-        autoComplete="off"
-        labelCol={{
-          span: 4,
-        }}
-        wrapperCol={{
-          span: 20,
-        }}
-      >
-        <Input showCount placeholder='Optional' />
-        </Form.Item>
-        <Form.Item
-          wrapperCol={{
-            offset: 8,
-            span: 16,
+  const navigateToListItemsPage = () => {
+    setVisible(false);
+    return navigate("/home/inventory/");
+  };
+
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/basic/terms/").then((res) => {
+      setTerms(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/items/categories/").then((res) => {
+      // console.log(res.data)
+      setCategories(res.data);
+    });
+  }, []);
+
+  const handleCancel = () => {
+    setVisible(false);
+  };
+
+  const handleSuccess = () => {
+    setVisible(true);
+  };
+
+  const onFinish = (values) => {
+    if (xCategory.id === "") {
+      return Modal.error({ title: "Choose Category" });
+    }
+    if (xTerm.id === "") {
+      return Modal.error({ title: "Choose Study Period" });
+    }
+    const data = {
+      cat_id: xCategory.id,
+      term_id: xTerm.id,
+      item_name: values.name.toLowerCase(),
+      measure: values.measure,
+      units: values.units,
+      quantity: Number(values.quantity),
+    };
+    console.log(data);
+    const url = "http://127.0.0.1:8000/store/inward-new/";
+    axios
+      .post(url, data, {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+      .then((response) => handleSuccess())
+      .catch((error) => {
+        console.log(error);
+        return Modal.error({
+          title: "Data Already Exists Or Service Not Currently Available",
+        });
+      });
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    return Modal.error({ title: "Incomplete Data" });
+  };
+
+  return (
+    <>
+      <div>
+        <Breadcrumb
+          style={{
+            margin: "16px 0",
           }}
         >
-        <Button style={{ background:"blue" , color:"white"}} htmlType="submit">
-        ADD NEW STOCk
-        </Button>
-        </Form.Item>
+          <Breadcrumb.Item>Add New Stock</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link to="/home/inventory/in/records" style={{ color: "blue" }}>
+              View Records
+            </Link>
+          </Breadcrumb.Item>
+        </Breadcrumb>
       </div>
-      }
-      <Drawer
-          title="Choose Products"
-          placement={"right"}
-          closable={false}
-          onClose={onClose}
-          visible={visible}
-          key={"right"}
+      <div
+        className="site-layout-content"
+        style={{
+          minHeight: "280px",
+          padding: "24px",
+          background: "#fff",
+        }}
+      >
+        <Form
+          name="control-hooks"
+          onFinish={onFinish}
+          onFinishFailed={onFinishFailed}
+          autoComplete="off"
+          labelCol={{
+            span: 4,
+          }}
+          wrapperCol={{
+            span: 20,
+          }}
         >
-          <DrawerProducts type ="stock_in"/>
-        </Drawer>
-      </>
-    )
-  }
+          <Form.Item
+            wrapperCol={{ offset: 4, span: 20 }}
+            style={{
+              background: "cornsilk",
+            }}
+          >
+            Enter Item Details
+          </Form.Item>
+          <Form.Item
+            label="Period Of Study"
+            labelCol={{
+              span: 4,
+            }}
+            wrapperCol={{
+              span: 20,
+            }}
+          >
+            <Select
+              placeholder="select One"
+              onChange={(val) => {
+                let obj = terms.find((item) => item.id === val);
+                setXTerm(obj);
+              }}
+            >
+              {terms.map((item, index) => (
+                <Select.Option key={index} value={item.id}>
+                  {item.name} - {item.academic_year}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="Select Category"
+            labelCol={{
+              span: 4,
+            }}
+            wrapperCol={{
+              span: 20,
+            }}
+          >
+            <Select
+              placeholder="select One"
+              onChange={(val) => {
+                let obj = categories.find((item) => item.id === val);
+                setXCategory(obj);
+              }}
+            >
+              {categories.map((item, index) => (
+                <Select.Option key={index} value={item.id}>
+                  {item.name}
+                </Select.Option>
+              ))}
+            </Select>
+            <div style={{ color: "blue" }}>
+              <Link to="#" style={{ color: "blue" }}>
+                Add Category
+              </Link>
+              <span style={{ marginLeft: "5px", color: "green" }}>
+                <FolderAddOutlined />
+              </span>
+            </div>
+          </Form.Item>
+          <Form.Item name="name" label="Item Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="measure"
+            label="Measure"
+            labelCol={{
+              span: 4,
+            }}
+            wrapperCol={{
+              span: 20,
+            }}
+            rules={[{ required: true }]}
+          >
+            <Select
+              placeholder="select One"
+            >
+              <Select.Option key={1} value="Term">Term</Select.Option>
+              <Select.Option key={2} value="Month">Month</Select.Option>
+              <Select.Option key={3} value="Week">Week</Select.Option>
+              <Select.Option key={4} value="Other">Other</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="units" label="Units" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="quantity"
+            label="Item Quantity"
+            rules={[{ required: true }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              offset: 8,
+              span: 16,
+            }}
+          >
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
+      {visible && (
+        <Modal
+          // title="Success"
+          visible={visible}
+          onCancel={() => setVisible(false)}
+          onOk={() => setVisible(false)}
+          okText="OK"
+          footer={[
+            <Button key="back" onClick={handleCancel}>
+              Add Another Item
+            </Button>,
+            <Button key="edit" type="primary" onClick={navigateToListItemsPage}>
+              Go To List Items
+            </Button>,
+          ]}
+        >
+          <p style={{ color: "green" }}>
+            {" "}
+            Congs, Item was Added Successfully!
+            <span>
+              <CheckCircleOutlined />
+            </span>
+          </p>
+        </Modal>
+      )}
+    </>
+  );
+};
 
-export default InventoryStockIn
+export default InventoryStockIn;

@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import {Breadcrumb, Card, Radio, Row,Col, Space, Button} from 'antd'
+import {Breadcrumb, Card, Radio, Row,Col, Space} from 'antd'
 
 const FinanceReceiptsNew = () => {
   const [receiptType, setReceiptType] = useState(null);

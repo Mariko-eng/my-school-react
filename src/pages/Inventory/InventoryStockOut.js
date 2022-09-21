@@ -1,176 +1,289 @@
-import React, { useState, useEffect } from 'react'
-import { AppBreadcrumb } from '../../components'
-import {Form, Input,Select,Drawer, Col,Row,Card,Button} from 'antd'
-import { FolderAddOutlined } from '@ant-design/icons';
-import { useDispatch, useSelector } from 'react-redux'
-import { getProducts, getSuppliers } from  '../../store/productSlice'
-import { changeQtystockOutCart,clearstockOutCart } from '../../store/inventorySlice'
-import {Link} from 'react-router-dom';
-import DrawerProducts from '../../components/DrawerProducts';
+import React, { useEffect, useState } from "react";
+import { Form, Input, Select, Modal, Button, Breadcrumb,Row,Col,Card,Drawer } from "antd";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { CheckCircleOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 
 const InventoryStockOut = () => {
-  const dispatch = useDispatch()
-  const { suppliers } = useSelector((store) => store.product)
-  const { stockOutCart, noOfstockoutCartItems} = useSelector(store => store.inventory)
-    
-    const [visible, setVisible] = useState(false);
-  
-    const showDrawer = () => {
-      setVisible(true);
-    };
-  
-    const onClose = () => {
-      setVisible(false);
-    };
-  
-    useEffect(() =>{
-      dispatch(getProducts())
-    },[dispatch])
+  const [terms, setTerms] = useState([]);
+  const [xTerm, setXTerm] = useState({ id: "" });
+  const [searches, setSearches] = useState([]);
+  const [xSearch, setXSearch] = useState({id:""});
 
-    useEffect(() =>{
-      dispatch(getSuppliers())
-    },[dispatch])
-    
-    return (
-      <>
-      <div style={{ background:"cornsilk", padding:"5px"}}>
-        <AppBreadcrumb title="Inventory" action1="Issue Out Stock" />
-        <div style={{ 
-          display: "flex"
-        }}>
-          <Button  type="primary" style={{ color:"white"}} onClick={() => showDrawer()} >Choose Products</Button>
-          {noOfstockoutCartItems !== 0 &&
-          <div style={{ 
-            display: "flex"
-          }}>
-          <Button style={{ background:"red" , color:"white"}} onClick={() => dispatch(clearstockOutCart())} >Clear List</Button>
-          <Button>Total {noOfstockoutCartItems}</Button>
-          </div>
-          }
-        </div>
-        <br/>
-        <Card>
-          <Row>
-            <Col span = {4} >Id</Col>
-            <Col span = {4}>Name</Col>
-            <Col span = {4}>Category</Col>
-            <Col span = {4}>Stock</Col>
-            <Col span = {4}>Units</Col>
-            <Col span = {4}>Quantity</Col>
-          </Row>
-        </Card>
+  const [visibleDrawer, setVisibleDrawer] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-        <Card>
-        {stockOutCart.map(item => {
-        return (<div
-            key={item.id}>
-          <Row>
-          <Col span={4} >{item.id}</Col>
-          <Col span={4} >{item.name}</Col>
-          <Col span={4} >{item.category}</Col>
-          <Col span={4} >{item.current_qty}</Col>
-          <Col span={4} >{item.units}</Col>
-          <Col span={4} >
-            <input
-            style={{
-              borderRadius:"20px",
-              width : "100px",height:"30px"}} 
-            type='number' 
-            name = "q"
-            placeholder="Quantity" 
-            value= {item.qty}
-            onChange={(e) =>{  dispatch(changeQtystockOutCart({id: item.id,qty:e.target.value}))}}
-            /></Col>
-          </Row>
-        </div>
-        )  
-      }
-        )}
-      </Card>
-  
-      </div>
-      {noOfstockoutCartItems !== 0 &&
-      <div style={{ marginTop: "20px" }}>
-                <Form.Item
-        wrapperCol={{ offset: 8,
-        span : 16}}
-        style={{
-          background: "cornsilk"
-        }}
-        >
-          Additional Information
-        </Form.Item>
-      <Form.Item name="recipient"
-       label="Select Recipient"
-       autoComplete="off"
-       labelCol={{
-         span: 4,
-       }}
-       wrapperCol={{
-         span: 20,
-       }}
-       >
-        <Select>
-          { suppliers.map((suppliers,index) => 
-              <Select.Option key= {index} value={suppliers.id}>{suppliers.name} -- {suppliers.location}</Select.Option>
-          ) }
-        </Select>
-        <div style={{color:"blue"}} >
-        <Link to="/home/inventory/category/new123"
-                style={{ color:"blue" }}
-        >Add Recipient</Link>
-          <span style={{ marginLeft : "5px",color:"green" }}><FolderAddOutlined/></span></div>
-      </Form.Item>
-      <Form.Item
-        name="comment"
-        label="Comments"
-        autoComplete="off"
-        labelCol={{
-          span:4,
-        }}
-        wrapperCol={{
-          span: 20,
-        }}
-      >
-        <Input.TextArea showCount maxLength={1000} placeholder='Optional'/>
-        </Form.Item>
-        <Form.Item
-        name="request"
-        label="Request id"
-        autoComplete="off"
-        labelCol={{
-          span: 4,
-        }}
-        wrapperCol={{
-          span: 20,
-        }}
-      >
-        <Input showCount placeholder='Optional' />
-        </Form.Item>
-        <Form.Item
-          wrapperCol={{
-            offset: 8,
-            span: 16,
+  const navigate = useNavigate();
+
+  const navigateToListItemsPage = () => {
+    setVisible(false);
+    return navigate("/home/inventory/");
+  };
+
+  const showDrawer = () => {
+    setVisibleDrawer(true);
+  };
+
+  const onClose = () => {
+    setVisibleDrawer(false);
+  };
+
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/basic/terms/").then((res) => {
+      setTerms(res.data);
+    });
+  }, []);
+
+
+  const handleCancel = () => {
+    setVisible(false);
+  };
+
+  const handleSuccess = () => {
+    setXSearch({id:""})
+    setVisible(true);
+  };
+
+  const getItems = (val) => {
+    axios.get(`http://127.0.0.1:8000/store/item-search-store/${val}/`).then((res) => {
+      // console.log(res.data)
+      setSearches(res.data);
+    });
+  }
+
+  const onFinish = (values) => {
+    if (xTerm.id === "") {
+      return Modal.error({ title: "Choose Study Period" });
+    }
+    const data = {
+      term_id: xTerm.id,
+      item_id: xSearch.id,
+      units: values.units,
+      quantity: Number(values.quantity),
+      consumer: values.consumer,
+      comments: values.comments,
+    };
+    console.log(data);
+    const url = "http://127.0.0.1:8000/store/outward-new/";
+    axios
+      .post(url, data, {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+      .then((response) => handleSuccess())
+      .catch((error) => {
+        console.log(error);
+        return Modal.error({
+          title: "Data Already Exists Or Service Not Currently Available",
+        });
+      });
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    return Modal.error({ title: "Incomplete Data" });
+  };
+
+  return (
+    <>
+      <div>
+        <Breadcrumb
+          style={{
+            margin: "16px 0",
           }}
         >
-        <Button type="primary" htmlType="submit">
-        ISSUE OUT STOCk
-        </Button>
-        </Form.Item>
+          <Breadcrumb.Item>Issue Stock Out</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link to="/home/inventory/out/records" style={{ color: "blue" }}>
+              View Records
+            </Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+              <div onClick={showDrawer}>
+                Search <SearchOutlined/>
+              </div>
+          </Breadcrumb.Item>
+        </Breadcrumb>
       </div>
-      }
-      <Drawer
-          title="Choose Products"
-          placement={"right"}
-          closable={false}
-          onClose={onClose}
-          visible={visible}
-          key={"right"}
+      <div
+        className="site-layout-content"
+        style={{
+          minHeight: "280px",
+          padding: "24px",
+          background: "#fff",
+        }}
+      >
+        { xSearch.id !== "" ?
+        <Form
+          name="control-hooks"
+          onFinish={onFinish}
+          onFinishFailed={onFinishFailed}
+          autoComplete="off"
+          labelCol={{
+            span: 4,
+          }}
+          wrapperCol={{
+            span: 20,
+          }}
         >
-          <DrawerProducts type ="stock_out"/>
-        </Drawer>
-      </>
-    )
-  }
+          <Form.Item
+            wrapperCol={{ offset: 4, span: 20 }}
+            style={{
+              background: "cornsilk",
+            }}
+          >
+            Fill In The Form
+          </Form.Item>
+          <div>
+              <p>ITEM : <span style={{color:"blue"}} >{xSearch.name}</span></p>
+            </div>
+          <Form.Item
+            label="Period Of Study"
+            labelCol={{
+              span: 4,
+            }}
+            wrapperCol={{
+              span: 20,
+            }}
+          >
+            <Select
+              placeholder="select One"
+              onChange={(val) => {
+                let obj = terms.find((item) => item.id === val);
+                setXTerm(obj);
+              }}
+            >
+              {terms.map((item, index) => (
+                <Select.Option key={index} value={item.id}>
+                  {item.name} - {item.academic_year}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="units" label="Units" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="quantity"
+            label="Item Quantity"
+            rules={[{ required: true }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item name="consumer" label="Consumer" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="comments" label="Comments" initialValue=""rules={[{ required: false }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              offset: 8,
+              span: 16,
+            }}
+          >
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              offset: 8,
+              span: 16,
+            }}
+          >
+            <Button onClick={() => setXSearch({id:""})}>
+              Reset
+            </Button>
+          </Form.Item>
+        </Form>
+        :<div style={{ textAlign:"center",color:"blue" ,marginTop:"50px" }} onClick={showDrawer}>
+          Search Item Here<SearchOutlined/>
+        </div>
+        }
+      </div>
+      {visible && (
+        <Modal
+          // title="Success"
+          visible={visible}
+          onCancel={() => setVisible(false)}
+          onOk={() => setVisible(false)}
+          okText="OK"
+          footer={[
+            <Button key="back" onClick={handleCancel}>
+              Add Another Item
+            </Button>,
+            <Button key="edit" type="primary" onClick={navigateToListItemsPage}>
+              Go To List Items
+            </Button>,
+          ]}
+        >
+          <p style={{ color: "green" }}>
+            {" "}
+            Congs, Item was Added Successfully!
+            <span>
+              <CheckCircleOutlined />
+            </span>
+          </p>
+        </Modal>
+      )}
+      <Drawer
+        title="Student Search"
+        placement="right"
+        closable={false}
+        onClose={onClose}
+        visible={visibleDrawer}
+        key={"right"}
+      >
+        <Row>
+          <Col span={24}>
+            <Card>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <Form.Item>
+                  Search By Name
+                  <Input
+                    prefix={<SearchOutlined />}
+                    onChange={(val) => {
+                      if (val.target.value.trim().length >= 1) {
+                        getItems(val.target.value.trim());
+                      }
+                    }}
+                  />
+                </Form.Item>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+        <Row>
+          <Col span={24}>
+            <div
+              style={{
+                height: "200px",
+                overflow: "auto",
+              }}
+            >
+              {searches.map((result, index) => {
+                return (
+                  <div key={index} style={{ paddingLeft: "10px" }}>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div onClick = {() => {
+                          setXSearch(result)
+                          return onClose()
+                        }} style={{ paddingLeft: "10px" }}>
+                          ~ {result.name} <span style={{color:"blue"}} >Select</span>
+                        </div>
+                      </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Col>
+        </Row>
+      </Drawer>
+    </>
+  );
+};
 
 export default InventoryStockOut
