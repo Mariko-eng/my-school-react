@@ -11,7 +11,6 @@ const StaffAllowancesInstantNew = () => {
 
   const navigate = useNavigate();
 
-
   const loadOptionsStaff = async (inputValue, callback) => {
     // perform a request
     const requestResults = await axiosInstance.get(

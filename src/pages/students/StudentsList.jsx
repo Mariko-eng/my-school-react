@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axios";
 import { Table, Space, Button, PageHeader, Input } from "antd";
 import { Link, useNavigate } from "react-router-dom";
-import { PrinterOutlined } from "@ant-design/icons";
+import { PrinterOutlined, SearchOutlined } from "@ant-design/icons";
 import AsyncSelect from "react-select/async";
 
 const StudentsList = () => {
@@ -16,51 +16,67 @@ const StudentsList = () => {
     navigate("/home/students-detail/", { state: detail });
   };
 
-  const loadOptionsStudents = async (inputValue, callback) => {
-    // perform a request
-    const requestResults = await axiosInstance.get(
-      `students/search/${inputValue}/`
-    );
+  // const loadOptionsStudents = async (inputValue, callback) => {
+  //   // perform a request
+  //   const requestResults = await axiosInstance.get(
+  //     `students/search/${inputValue}/`
+  //   );
 
-    const { data } = requestResults;
-    const options = [];
-    data.forEach((item) => {
-      options.push({
-        label: item.last_name + " " + item.first_name,
-        value: item.id,
-      });
-      // console.log(item)
-    });
-
-    // return requestResults
-    return options;
-  };
+  //   const { data } = requestResults;
+  //   const options = [];
+  //   data.forEach((item) => {
+  //     options.push({
+  //       label: item.last_name + " " + item.first_name,
+  //       value: item.id,
+  //     });
+  //     // console.log(item)
+  //   });
+  //   setStudents(data)
+  //   // return requestResults
+  //   return options;
+  // };
 
   const loadOptionsClasses = async (inputValue, callback) => {
     // perform a request
     const requestResults = await axiosInstance.get("basic/classes/");
 
     const { data } = requestResults;
+    // console.log(data)
     const options = [];
     data.forEach((item) => {
-      options.push({ label: item.name, value: item.id });
-      // console.log(item)
+      options.push({ key: item.id, label: item.name, value: item.id });
     });
-
-    // return requestResults
     return options;
   };
 
-  const getStudents = () => {
-    const url = "students/";
+  const getStudentsSample = () => {
+    const url = "students/sample/";
     axiosInstance.get(url).then((res) => {
       const { data } = res;
       setStudents(data);
-      // console.log(data[0].student_class.name)
     });
   };
+
+  const searchForStudent = async (val) => {
+    if (val.trim().length !== 0) {
+    const requestResults = await axiosInstance.get(`students/search/${val}/`);
+    const { data } = requestResults;
+    setStudents(data);
+  }else{
+    getStudentsSample()
+  }
+  };
+
+  const getStudentsForEachclass = (value) => {
+      const url = `students/search-by-class/${value}/`;
+      axiosInstance.get(url).then((res) => {
+        const { data } = res;
+        setStudents(data);
+      });
+  };
+
   useEffect(() => {
-    getStudents();
+    getStudentsSample();
   }, []);
 
   const columns = [
@@ -101,8 +117,9 @@ const StudentsList = () => {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <Space size="middle">
+        <Space key="record" size="middle">
           <div
+            key="1"
             onClick={() => {
               navigateToStudentDetail(record, "view");
             }}
@@ -111,6 +128,7 @@ const StudentsList = () => {
             View
           </div>
           <div
+            key="2"
             onClick={() => {
               navigateToStudentDetail(record, "edit");
             }}
@@ -132,27 +150,35 @@ const StudentsList = () => {
           title="Students"
           subTitle="List"
           extra={[
-            <div style={{ width: "250px" }}>
-              <AsyncSelect
-                placeholder="Select Student"
-                defaultOptions
-                cacheOptions
-                loadOptions={loadOptionsStudents}
-                onChange={(opt, meta) => {
-                  console.log(opt, meta);
-                  return setXStudent(opt);
-                }}
-              />
-            </div>,
-            <div style={{ width: "200px" }}>
+            // <div key ="studnets" style={{ width: "250px" }}>
+            //   <AsyncSelect
+            //     placeholder="Select Student"
+            //     // defaultOptions
+            //     cacheOptions
+            //     loadOptions={loadOptionsStudents}
+            //     onChange={(opt, meta) => {
+            //       console.log(opt, meta);
+            //       return setXStudent(opt);
+            //     }}
+            //   />
+            // </div>,
+            <Input
+              key="3"
+              size="small"
+              placeholder="search"
+              prefix={<SearchOutlined />}
+              onChange={(e) => searchForStudent(e.target.value)}
+            />,
+            <div key="classes" style={{ width: "200px" }}>
               <AsyncSelect
                 placeholder="Select Class"
                 defaultOptions
                 cacheOptions
                 loadOptions={loadOptionsClasses}
                 onChange={(opt, meta) => {
-                  console.log(opt, meta);
-                  return setXStudent(opt);
+                  // console.log(opt, meta);
+                  setXclass(opt);
+                  return getStudentsForEachclass(opt.label);
                 }}
               />
             </div>,
